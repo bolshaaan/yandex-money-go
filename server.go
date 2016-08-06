@@ -51,29 +51,47 @@ func renderTemplate( w http.ResponseWriter, tmpl string, p *Page ) {
 	t.Execute(w, p)
 }
 
+
+func check_time( time_str string ) time.Time {
+
+	t, err := time.Parse("2016-03-21", time_str)
+	if err != nil {
+		log.Println("cannot parse: ", time_str)
+		return time.Now()
+	}
+	return t
+
+	//date_regex := regexp.MustCompile(`^(\d{2})/(\d{2})/(\d{4})$`)
+
+	//m := date_regex.FindStringSubmatch(time_str)
+	//
+	//
+	//
+	//parsed_month, _ := strconv.ParseInt( m[1], 10, 16 )
+	//t := time.Date(m[3], time.Month( parsed_month), m[2], 0, 0, 0, 0, time.Local)
+}
+
+
 func data_handler (w http.ResponseWriter, r *http.Request) {
 
+	r.ParseForm()
+
+	from := check_time( r.Form.Get("from") )
+	till := check_time( r.Form.Get("till") )
+
+	log.Println("From: ", from)
+	log.Println("To: ", till)
 
 	token, err := ioutil.ReadFile(file_name)
-
-	if err != nil {
-		panic(err)
-	}
+	check(err)
 
 	ya, _ := yamoney.NewYaMoney(string(token))
 
 	// Start period
-	from, _ := time.Parse( "2006-Jan-02 00:00:00", "2016-Aug-01 00:00:00" )
-	till := from.AddDate(0, 1, 0)
+	//from, _ := time.Parse( "2006-Jan-02 00:00:00", "2016-Aug-01 00:00:00" )
+	//till := from.AddDate(0, 1, 0)
 
 	operations := ya.OperationHistory( "from=" + from.Format(time.RFC3339) + "&till=" + till.Format(time.RFC3339) )
-
-	m := validDataPath.FindStringSubmatch(r.URL.Path)
-
-	if m == nil {
-		http.NotFound(w,r)
-		return
-	}
 
 	var data struct {
 		In, Out []interface{}

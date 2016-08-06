@@ -1,16 +1,52 @@
    /* YaMoney with Go @bolshaaan */
   $(function() {
 
+
+      function get_date(comp) {
+        var date = $(comp).datepicker("getDate");
+
+        var month = date.getMonth();
+        month = month < 10
+          ? "0" + month
+          : month;
+
+        var day = date.getDate();
+        day = day < 10
+          ? "0" + day
+          : day;
+
+        return date.getFullYear() + "-" + month + "-" + day;
+      }
+
+
       // datepicker
       $( "#datepicker,#datepicker2" )
         .datepicker({
+          dateFormat: "yy-mm-dd",
           onSelect : function( date, inst ) {
-            console.log(date)
-          }
-          }
-        );
+            console.log(date);
 
-      $.getJSON('/data/out', function (ddata) {
+            console.log(get_date('#datepicker'));
+            console.log(get_date('#datepicker2'));
+
+            $.ajax({
+              url: "/data/",
+              data: {
+                "from": get_date("#datepicker"),
+                "till": get_date("#datepicker2"),
+              },
+              dataType: "json",
+              success: function (data) {
+                var chart = $('#container').highcharts();
+
+                chart.series[0].setData(data["AggregatedOut"] , true);
+              }
+            });
+
+          }
+        });
+
+      $.getJSON('/data/', function (ddata) {
 
          var labels = ddata["Labels"];
          console.log(labels);
