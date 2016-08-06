@@ -75,11 +75,6 @@ func handler (w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//var data struct { in, out []interface{} }
-
-	//day_ur, err := time.ParseDuration("24h")
-	//check(err)
-
 	var data struct {
 		In, Out []interface{}
 		Labels map[string]string
@@ -101,6 +96,10 @@ func handler (w http.ResponseWriter, r *http.Request) {
 
 		op := operations[i]
 
+		if op.Direction != "out" {
+			continue
+		}
+
 		fmt.Println( op.DateTime, " : ", op.Title, " : ",  op.Amount)
 		sum += op.Amount
 
@@ -117,8 +116,9 @@ func handler (w http.ResponseWriter, r *http.Request) {
 		k := strconv.FormatInt(curt.Round(dur).Unix() * 1000, 10)
 
 		data.Labels[k] = fmt.Sprintf(
-			`%s <div style="color:green">%s</div> %f<br/>`, data.Labels[k],
-			op.Title, op.Amount  )
+			//`%s <tr><td><span style="color:green">%s</span></td><td>%f</td></tr>`, data.Labels[k],
+			`%s  ★ %06.2f ₽ <span style="color: #78a2b7">%s</span><br/>`, data.Labels[k],
+			op.Amount, op.Title )
 
 		*rr = append( *rr, []interface{}{ kk, op.Amount })
 
@@ -130,6 +130,10 @@ func handler (w http.ResponseWriter, r *http.Request) {
 	for i := len(operations)-1; i>=0; i-- {
 		op := operations[i]
 
+		if op.Direction != "out" {
+			continue
+		}
+
 		curt, _ := time.Parse(time.RFC3339, op.DateTime)
 		k := strconv.FormatInt(curt.Round(dur).Unix() * 1000, 10)
 
@@ -140,7 +144,7 @@ func handler (w http.ResponseWriter, r *http.Request) {
 	for k := range data.Labels {
 
 		data.Labels[k] = fmt.Sprintf(
-			"Total: %f <br/> %s",
+			`<br/><span style="background-color:yellow;color:red;font-size:+10">%f</span> <br/>%s`,
 			data.Sum[k], data.Labels[k] )
 	}
 
@@ -170,6 +174,10 @@ func main() {
 	box := rice.MustFindBox("js")
 	jsFileServer := http.StripPrefix("/js/", http.FileServer(box.HTTPBox()))
 	http.Handle("/js/", jsFileServer)
+
+	boxcss := rice.MustFindBox("css")
+	cssFileServer := http.StripPrefix("/css/", http.FileServer(boxcss.HTTPBox()))
+	http.Handle("/css/", cssFileServer)
 
 	http.HandleFunc("/operations/", makeHandler(operationsHandler))
 	http.HandleFunc("/data/", handler)

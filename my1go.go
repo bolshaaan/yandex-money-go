@@ -33,13 +33,6 @@ func main() {
 
 	log.Println(operations)
 
-	//var res yamoney.ResponseOperations
-	//if err := json.Unmarshal([]byte(operations), &res); err != nil {
-	//	log.Fatal("FATAL: ", err)
-	//}
-
-	//log.Println( "RESPONSE: ", res )
-
 	var sum float64
 	for _, op := range operations {
 		fmt.Println(op.Title)

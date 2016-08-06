@@ -1,0 +1,22 @@
+/* yamoney css */
+
+.total span {
+  background-color: blue !important;
+  color: red;
+
+}
+
+
+.payment {
+  color: green !important;
+}
+
+
+div.ya-money-datepicker {
+  text-align: center;
+}
+
+body {
+  background-color: "light-gray";
+}
+

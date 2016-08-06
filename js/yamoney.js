@@ -1,6 +1,18 @@
    /* YaMoney with Go @bolshaaan */
   $(function() {
 
+
+      // datepicker
+
+      $( "#datepicker,#datepicker2" )
+        .datepicker({
+          onSelect : function( date, inst ) {
+            console.log(date)
+          }
+          }
+        );
+
+
       $.getJSON('/data/out', function (ddata) {
 
          var labels = ddata["Labels"];
@@ -35,6 +47,7 @@
                       type: 'line',
                       name: "Потрачено",
                       data : ddata["AggregatedOut"],
+                      color: "red",
 
                       tooltip: {
                           useHTML: true,
