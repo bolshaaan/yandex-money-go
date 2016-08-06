@@ -47,6 +47,7 @@ func ( ya YandexMoneyClient ) OperationHistory( params ...string ) []Operation {
 	for _, param := range params {
 		ready_param += param
 	}
+	log.Println("READY_PARAM: ", ready_param)
 
 	operations := ya._execute("operation-history", bytes.NewReader([]byte( ready_param ))  )
 
@@ -71,11 +72,12 @@ func NewYaMoney(token string) (YandexMoneyClient, error) {
 func (ya YandexMoneyClient) _execute( cmd string, rbody io.Reader ) string {
 
 	log.Println("Cmd is: ", ya.api_url + cmd)
+	//log.Println("BODY: ", rbody)
 
 	req, err := http.NewRequest("POST", ya.api_url + cmd, rbody) // last is post-data
 	req.Header.Set("Host", "money.yandex.ru")
 	req.Header.Set("Authorization", "Bearer " + ya.token)
-	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	client := &http.Client{}
 	resp, err := client.Do(req)

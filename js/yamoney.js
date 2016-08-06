@@ -1,11 +1,12 @@
    /* YaMoney with Go @bolshaaan */
   $(function() {
 
+      var labels;
 
       function get_date(comp) {
         var date = $(comp).datepicker("getDate");
 
-        var month = date.getMonth();
+        var month = date.getMonth() + 1;
         month = month < 10
           ? "0" + month
           : month;
@@ -15,16 +16,14 @@
           ? "0" + day
           : day;
 
-        return date.getFullYear() + "-" + month + "-" + day;
+        return date.getFullYear() + "-" + month + "-" + day + "T00:00:00Z";
       }
-
 
       // datepicker
       $( "#datepicker,#datepicker2" )
         .datepicker({
           dateFormat: "yy-mm-dd",
           onSelect : function( date, inst ) {
-            console.log(date);
 
             console.log(get_date('#datepicker'));
             console.log(get_date('#datepicker2'));
@@ -39,6 +38,9 @@
               success: function (data) {
                 var chart = $('#container').highcharts();
 
+                labels = data["Labels"];
+                $('#total').text(data["Total"]);
+
                 chart.series[0].setData(data["AggregatedOut"] , true);
               }
             });
@@ -48,7 +50,7 @@
 
       $.getJSON('/data/', function (ddata) {
 
-         var labels = ddata["Labels"];
+         labels = ddata["Labels"];
          console.log(labels);
          $('#total').text(ddata["Total"]);
 
