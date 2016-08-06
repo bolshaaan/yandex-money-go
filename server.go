@@ -9,7 +9,6 @@ import (
 	"./ya-money-go"
 	"fmt"
 	"encoding/json"
-	//"strconv"
 	"log"
 	"strconv"
 	"github.com/GeertJohan/go.rice"
@@ -23,18 +22,18 @@ type Page struct {
 }
 
 var file_name = "/home/alexander/token_file"
-var validPath = regexp.MustCompile("^/(operations)/(in|out)$")
+var validPath = regexp.MustCompile("^/(operations)/$")
 var validDataPath = regexp.MustCompile("^/(data)/(in|out)$")
 
 const template_path = "templates"
 
-func operationsHandler(w http.ResponseWriter, r *http.Request, dir string) {
+func operationsHandler(w http.ResponseWriter, r *http.Request) {
 
 	p := &Page{}
 	renderTemplate(w, "operations", p)
 }
 
-func makeHandler (fn func(http.ResponseWriter, *http.Request, string)) http.HandlerFunc {
+func makeHandler (fn func(http.ResponseWriter, *http.Request)) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		m := validPath.FindStringSubmatch(r.URL.Path)
@@ -43,7 +42,7 @@ func makeHandler (fn func(http.ResponseWriter, *http.Request, string)) http.Hand
 			http.NotFound(w, r)
 			return
 		}
-		fn(w, r, m[2])
+		fn(w, r)
 	}
 }
 
@@ -52,7 +51,8 @@ func renderTemplate( w http.ResponseWriter, tmpl string, p *Page ) {
 	t.Execute(w, p)
 }
 
-func handler (w http.ResponseWriter, r *http.Request) {
+func data_handler (w http.ResponseWriter, r *http.Request) {
+
 
 	token, err := ioutil.ReadFile(file_name)
 
@@ -180,7 +180,7 @@ func main() {
 	http.Handle("/css/", cssFileServer)
 
 	http.HandleFunc("/operations/", makeHandler(operationsHandler))
-	http.HandleFunc("/data/", handler)
+	http.HandleFunc("/data/", data_handler)
 
 	http.ListenAndServe(":8080", nil)
 }

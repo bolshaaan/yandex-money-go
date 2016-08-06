@@ -1,9 +1,7 @@
    /* YaMoney with Go @bolshaaan */
   $(function() {
 
-
       // datepicker
-
       $( "#datepicker,#datepicker2" )
         .datepicker({
           onSelect : function( date, inst ) {
@@ -11,7 +9,6 @@
           }
           }
         );
-
 
       $.getJSON('/data/out', function (ddata) {
 
@@ -53,17 +50,7 @@
                           useHTML: true,
                           pointFormatter : function() {
 
-                              var lll = labels[this.category];
-                              return lll;
-//                              console.log(lll);
-
-//                              var res = "";
-//                              for (var i in lll) {
-//                                  res += "<br/> " + lll[i];
-//                              }
-//                              console.log(lll);
-//
-//                              return lll;
+                              return labels[this.category];
                           }
                       },
 
