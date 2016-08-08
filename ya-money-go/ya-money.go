@@ -21,6 +21,35 @@ type Operation struct {
 	Amount float64 `json:"amount"`
 }
 
+
+type ByAmount []Operation
+type ByDateTime []Operation
+
+func (s ByAmount) Len() int {
+	return len(s)
+}
+
+func (s ByAmount) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+
+func (s ByAmount) Less(i, j int) bool {
+	return s[i].Amount < s[j].Amount
+}
+
+func (s ByDateTime) Len() int {
+	return len(s)
+}
+
+func (s ByDateTime) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+
+func (s ByDateTime) Less(i, j int) bool {
+	return len(s[i].DateTime) < len(s[j].DateTime)
+}
+
+
 type ResponseOperations struct {
 	NextRecord string `json:"next_record"`
 	Operations []Operation `json:"operations"`

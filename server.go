@@ -21,6 +21,8 @@ type Page struct {
 	Body []byte
 }
 
+type PointData map[string][]yamoney.Operation
+
 var file_name = "/home/alexander/token_file"
 var validPath = regexp.MustCompile("^/(operations)/$")
 var validDataPath = regexp.MustCompile("^/(data)/(in|out)$")
@@ -102,6 +104,8 @@ func data_handler (w http.ResponseWriter, r *http.Request) {
 	}
 	var sum float64
 
+	points := make(PointData)
+
 	data.Labels = make(map[string]string)
 	data.Sum = make(map[string]float64)
 
@@ -130,15 +134,12 @@ func data_handler (w http.ResponseWriter, r *http.Request) {
 			rr = &data.Out
 		}
 
-		kk := curt.Round(dur).Unix() * 1000
-		k := strconv.FormatInt(curt.Round(dur).Unix() * 1000, 10)
-
-		data.Labels[k] = fmt.Sprintf(
-			//`%s <tr><td><span style="color:green">%s</span></td><td>%f</td></tr>`, data.Labels[k],
-			`%s  ★ %06.2f ₽ <span style="color: #78a2b7">%s</span><br/>`, data.Labels[k],
-			op.Amount, op.Title )
+		kk := curt.Truncate(dur).Unix() * 1000
+		k := strconv.FormatInt(curt.Truncate(dur).Unix() * 1000, 10)
 
 		*rr = append( *rr, []interface{}{ kk, op.Amount })
+
+		points[k] = append(points[k], op)
 
 		data.Sum[ k ] += op.Amount
 		data.Total += op.Amount
@@ -153,20 +154,13 @@ func data_handler (w http.ResponseWriter, r *http.Request) {
 		}
 
 		curt, _ := time.Parse(time.RFC3339, op.DateTime)
-		k := strconv.FormatInt(curt.Round(dur).Unix() * 1000, 10)
+		k := strconv.FormatInt(curt.Truncate(dur).Unix() * 1000, 10)
 
 
-		data.AggregatedOut = append(data.AggregatedOut, []interface{}{ curt.Round(dur).Unix() * 1000, data.Sum[k] })
+		data.AggregatedOut = append(data.AggregatedOut, []interface{}{ curt.Truncate(dur).Unix() * 1000, data.Sum[k] })
 	}
 
-	for k := range data.Labels {
-
-		data.Labels[k] = fmt.Sprintf(
-			`<br/><span style="background-color:yellow;color:red;font-size:+10">%f</span> <br/>%s`,
-			data.Sum[k], data.Labels[k] )
-	}
-
-
+	data.Labels = points.GetLabels()
 
 	log.Println( "Labels: ", data.Labels )
 
@@ -177,6 +171,59 @@ func data_handler (w http.ResponseWriter, r *http.Request) {
 
 	fmt.Fprint(w, string(jj))
 }
+
+	func (points PointData) GetLabels() map[string]string {
+
+	timerepl := regexp.MustCompile(".*T")
+
+	var res = make(map[string]string)
+
+	for k := range points {
+		ops := points[k]
+		//sort.Sort(yamoney.ByDateTime( ops )) // sort !
+
+		// get max lenght of digits placed
+		var max_len int = 0
+		for o := range ops{
+			op := ops[o]
+
+			str := fmt.Sprintf("%0.2f", op.Amount)
+			if max_len < len(str) {
+				max_len = len(str)
+			}
+		}
+
+		var sum float64
+		for o := range ops {
+
+			op := ops[o]
+			//whipe out date
+			rdone := timerepl.ReplaceAll([]byte(op.DateTime), []byte(``))
+
+			str := fmt.Sprintf("%6.2f", op.Amount)
+			diff := max_len - len(str)
+
+			for i := 1; i <= diff; i++ {
+				str = `<span style="color:white">0</span>` + str
+			}
+
+			res[k] = fmt.Sprintf(
+				//`%s <tr><td><span style="color:green">%s</span></td><td>%f</td></tr>`, data.Labels[k],
+				`%s  ★ %s ₽ <span style="color:green">%s </span><span style="color: #78a2b7">%s</span><br/>`, res[k],
+				str, string(rdone), op.Title )
+
+			sum += op.Amount
+		}
+
+		res[k] = fmt.Sprintf(
+			`<br/><span style="background-color:yellow;color:red;font-size:+10">%f</span> <br/>%s`,
+			sum, res[k] )
+	}
+
+	return res
+}
+
+
 
 func check(err error) {
 
