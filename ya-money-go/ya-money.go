@@ -78,14 +78,28 @@ func ( ya YandexMoneyClient ) OperationHistory( params ...string ) []Operation {
 	}
 	log.Println("READY_PARAM: ", ready_param)
 
-	operations := ya._execute("operation-history", bytes.NewReader([]byte( ready_param ))  )
+	var next_record string = "0"
+	var ops []Operation = []Operation{}
+	for i := 0; len(next_record) > 0; i++ {
 
-	var res ResponseOperations
-	if err := json.Unmarshal([]byte(operations), &res); err != nil {
-		log.Fatal("FATAL: ", err)
+		operations := ya._execute("operation-history", bytes.NewReader([]byte( ready_param + "&start_record=" + next_record ))  )
+
+		var res ResponseOperations
+		if err := json.Unmarshal([]byte(operations), &res); err != nil {
+			log.Fatal("FATAL: ", err)
+		}
+
+		// TODO: how 2 merge to slices/arrays ?
+		for m := range res.Operations {
+			ops = append( ops, res.Operations[m] )
+		}
+
+		log.Println("NExt REcord: ", res.NextRecord)
+
+		next_record = res.NextRecord
 	}
 
-	return res.Operations
+	return ops
 }
 
 func NewYaMoney(token string) (YandexMoneyClient, error) {

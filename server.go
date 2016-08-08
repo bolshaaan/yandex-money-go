@@ -122,7 +122,7 @@ func data_handler (w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
-		fmt.Println( op.DateTime, " : ", op.Title, " : ",  op.Amount)
+		//fmt.Println( op.DateTime, " : ", op.Title, " : ",  op.Amount)
 		sum += op.Amount
 
 		curt, _ := time.Parse(time.RFC3339, op.DateTime)
